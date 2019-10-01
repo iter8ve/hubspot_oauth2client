@@ -7,6 +7,15 @@ import datetime
 
 import requests
 
+try:
+    # python 3
+    from urllib.parse import urlencode
+    str_type = str
+except ImportError:
+    # python 2
+    from urllib import urlencode
+    str_type = unicode
+
 
 def flow_from_clientsecrets(secrets_filename, scopes, redirect_uri):
 
@@ -21,7 +30,7 @@ def flow_from_clientsecrets(secrets_filename, scopes, redirect_uri):
     return OAuth2Flow(client_id, client_secret, scopes, redirect_uri)
 
 
-class OAuth2Flow:
+class OAuth2Flow(object):
 
     authorize_url = 'https://app.hubspot.com/oauth/authorize'
 
@@ -40,7 +49,7 @@ class OAuth2Flow:
 
         url = '{base}?{params}'.format(
             base=self.authorize_url,
-            params=urllib.urlencode(params))
+            params=urlencode(params))
 
         return url
 
@@ -78,8 +87,8 @@ class OAuth2Flow:
         token_expires_on = token_obtained_on + token_lifetime_seconds
 
         try:
-            access_token = unicode(datadict['access_token'])
-            refresh_token = unicode(datadict['refresh_token'])
+            access_token = str_type(datadict['access_token'])
+            refresh_token = str_type(datadict['refresh_token'])
         except KeyError:
             raise BadCodeExchangeResponse("Missing access or refresh token")
         except UnicodeDecodeError:
@@ -100,7 +109,7 @@ class OAuth2Flow:
         self.redirect_uri = redirect_uri.rstrip('/')
 
 
-class OAuth2Credentials:
+class OAuth2Credentials(object):
     """
     Wraps OAuth2 access & refresh tokens and supporting data.
     """
